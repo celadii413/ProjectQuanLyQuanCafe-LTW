@@ -45,7 +45,6 @@
             this.button13 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
             this.btnThanhToan = new System.Windows.Forms.Button();
-            this.btnThanhToanMaQR = new System.Windows.Forms.Button();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.numSoLuong)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvHoaDon)).BeginInit();
@@ -327,23 +326,13 @@
             // 
             // btnThanhToan
             // 
-            this.btnThanhToan.Location = new System.Drawing.Point(882, 539);
+            this.btnThanhToan.Location = new System.Drawing.Point(838, 539);
             this.btnThanhToan.Name = "btnThanhToan";
-            this.btnThanhToan.Size = new System.Drawing.Size(102, 29);
+            this.btnThanhToan.Size = new System.Drawing.Size(146, 62);
             this.btnThanhToan.TabIndex = 33;
             this.btnThanhToan.Text = "Thanh Toán";
             this.btnThanhToan.UseVisualStyleBackColor = true;
             this.btnThanhToan.Click += new System.EventHandler(this.btnThanhToan_Click);
-            // 
-            // btnThanhToanMaQR
-            // 
-            this.btnThanhToanMaQR.Location = new System.Drawing.Point(827, 581);
-            this.btnThanhToanMaQR.Name = "btnThanhToanMaQR";
-            this.btnThanhToanMaQR.Size = new System.Drawing.Size(157, 29);
-            this.btnThanhToanMaQR.TabIndex = 34;
-            this.btnThanhToanMaQR.Text = "Thanh Toán bằng QR";
-            this.btnThanhToanMaQR.UseVisualStyleBackColor = true;
-            this.btnThanhToanMaQR.Click += new System.EventHandler(this.btnThanhToanMaQR_Click);
             // 
             // flowLayoutPanel1
             // 
@@ -370,7 +359,6 @@
             // 
             this.ClientSize = new System.Drawing.Size(1028, 630);
             this.Controls.Add(this.flowLayoutPanel1);
-            this.Controls.Add(this.btnThanhToanMaQR);
             this.Controls.Add(this.btnThanhToan);
             this.Controls.Add(this.txtTongTien);
             this.Controls.Add(this.numGiamGia);
@@ -426,7 +414,6 @@
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button btnThanhToan;
-        private System.Windows.Forms.Button btnThanhToanMaQR;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
     }
 }

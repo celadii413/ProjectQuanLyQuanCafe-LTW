@@ -247,11 +247,5 @@ namespace QuanLyQuanCafe
                 maBanHienTai = banMoi;
             }
         }
-
-        private void btnThanhToanMaQR_Click(object sender, EventArgs e)
-        {
-            var qr = new MaQR();
-            qr.ShowDialog();
-        }
     }
 }
