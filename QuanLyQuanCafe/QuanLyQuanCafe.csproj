@@ -71,15 +71,11 @@
     <Compile Include="DangNhap.Designer.cs">
       <DependentUpon>DangNhap.cs</DependentUpon>
     </Compile>
-    <Compile Include="DoanhThu.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="DoanhThu.cs" />
     <Compile Include="DoanhThu.Designer.cs">
       <DependentUpon>DoanhThu.cs</DependentUpon>
     </Compile>
-    <Compile Include="HoaDon.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="HoaDon.cs" />
     <Compile Include="HoaDon.Designer.cs">
       <DependentUpon>HoaDon.cs</DependentUpon>
     </Compile>
@@ -98,9 +94,7 @@
     <Compile Include="Models\NhanVien.cs" />
     <Compile Include="Models\QuanCafeDB.cs" />
     <Compile Include="Models\TaiKhoan.cs" />
-    <Compile Include="NhanVien.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="NhanVien.cs" />
     <Compile Include="NhanVien.Designer.cs">
       <DependentUpon>NhanVien.cs</DependentUpon>
     </Compile>
@@ -112,15 +106,11 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TrangChu.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="TrangChu.cs" />
     <Compile Include="TrangChu.Designer.cs">
       <DependentUpon>TrangChu.cs</DependentUpon>
     </Compile>
-    <Compile Include="TrangChu2.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="TrangChu2.cs" />
     <Compile Include="TrangChu2.Designer.cs">
       <DependentUpon>TrangChu2.cs</DependentUpon>
     </Compile>
