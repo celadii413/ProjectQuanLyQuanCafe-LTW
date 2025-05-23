@@ -14,7 +14,7 @@ namespace QuanLyQuanCafe
     public partial class HoaDon : Form
     {
         private QuanCafeDB db = new QuanCafeDB();
-        private string currentMaHD = ""; 
+        private string currentMaHD = "";
         public HoaDon()
         {
             InitializeComponent();

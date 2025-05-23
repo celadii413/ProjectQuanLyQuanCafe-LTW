@@ -16,102 +16,52 @@ namespace QuanLyQuanCafe
 {
     public partial class DangNhap : Form
     {
-        private QuanCafeDB db = new QuanCafeDB();
         public DangNhap()
         {
             InitializeComponent();
-            txtTenDangNhap.Text = "admin";
-            txtMatKhau.Text = "123";
         }
-        private string HashPassword(string password)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
+
         private void DangNhap_Load(object sender, EventArgs e)
         {
-            // Để tạo dữ liệu mẫu nếu database trống (chỉ chạy lần đầu)
-            if (!db.NhanViens.Any())
-            {
-                var chucVu = new ChucVu { MaCV = "CV001", TenCV = "Quản lý" };
-                var caLam = new CaLam { MaCa = "CA001", TenCa = "Ca sáng" };
-                db.ChucVus.Add(chucVu);
-                db.CaLams.Add(caLam);
-                db.SaveChanges(); // Lưu trước để có khóa ngoại
 
-                var nv = new NhanVien
-                {
-                    MaNV = "NV001",
-                    HoTenNV = "Admin",
-                    MaCV = "CV001",
-                    MaCa = "CA001",
-                    TrangThaiNV = "Đang làm",
-                    EmailNV = "admin@example.com",
-                    SDTNV = "0123456789"
-                };
-                db.NhanViens.Add(nv);
-                db.SaveChanges();
-
-                var tk = new TaiKhoan
-                {
-                    MaNV = "NV001",
-                    TenDangNhap = "admin",
-                    MatKhau = HashPassword("123"), // Mật khẩu mặc định là "123"
-                    LoaiTaiKhoan = "Admin"
-                };
-                db.TaiKhoans.Add(tk);
-                db.SaveChanges();
-
-                // Tạo vài bàn mẫu
-                for (int i = 0; i <= 10; i++)
-                {
-                    db.Bans.Add(new Ban { MaBan = $"B{i}", TenBan = $"Bàn {i}", TrangThaiB = "Trống" });
-                }
-                db.SaveChanges();
-
-                // Tạo vài món ăn mẫu
-                db.MenuThucDons.Add(new MenuThucDon { MaMon = "CF001", TenMon = "Cà phê đen", DonGia = 20000, LoaiMon = "Cà phê" });
-                db.MenuThucDons.Add(new MenuThucDon { MaMon = "TR001", TenMon = "Trà sữa", DonGia = 30000, LoaiMon = "Trà" });
-                db.MenuThucDons.Add(new MenuThucDon { MaMon = "BAN001", TenMon = "Bánh ngọt", DonGia = 25000, LoaiMon = "Đồ ăn vặt" });
-                db.SaveChanges();
-            }
         }
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            string tenDangNhap = txtTenDangNhap.Text.Trim();
-            string matKhau = HashPassword(txtMatKhau.Text.Trim()); // Hash mật khẩu nhập vào để so sánh
+            string username = txtUsername.Text.Trim();
+            string password = txtPassword.Text.Trim();
 
-            var taiKhoan = db.TaiKhoans.FirstOrDefault(tk => tk.TenDangNhap == tenDangNhap && tk.MatKhau == matKhau);
+            string connectionString = "Data Source=LAPTOP-GOHAVIR3;Initial Catalog=project_cf;Integrated Security=True";
 
-            if (taiKhoan != null)
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                // Đăng nhập thành công
-                MessageBox.Show("Đăng nhập thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    connection.Open();
+                    string query = "SELECT COUNT(*) FROM TaiKhoan WHERE TenDangNhap = @username AND MatKhau = @password";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@username", username);
+                    command.Parameters.AddWithValue("@password", password);
 
-                // Lấy thông tin nhân viên liên quan
-                var nhanVien = db.NhanViens.FirstOrDefault(nv => nv.MaNV == taiKhoan.MaNV);
+                    int count = (int)command.ExecuteScalar();
 
-                // Mở form TrangChu và truyền thông tin người dùng
-                TrangChu trangChuForm = new TrangChu(nhanVien.HoTenNV, taiKhoan.LoaiTaiKhoan); // Truyền tên và loại tài khoản
-                this.Hide(); // Ẩn form đăng nhập
-                trangChuForm.ShowDialog(); // Hiển thị form Trang Chủ
-
-                // Sau khi form TrangChu đóng, kiểm tra lại nếu muốn hiện lại FormDangNhap hoặc thoát ứng dụng
-                this.Close(); // Đóng form đăng nhập khi TrangChu đóng
-            }
-            else
-            {
-                MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng!", "Lỗi đăng nhập", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtMatKhau.Clear();
-                txtMatKhau.Focus();
+                    if (count > 0)
+                    {
+                        MessageBox.Show("Đăng nhập thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Ví dụ mở form chính sau khi đăng nhập:
+                        this.Hide();
+                        //TrangChu main = new TrangChu();
+                        //main.ShowDialog();
+                        this.Show();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Sai tên đăng nhập hoặc mật khẩu.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi kết nối cơ sở dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
 
         }
@@ -121,6 +71,13 @@ namespace QuanLyQuanCafe
         }
 
         private void DangNhap_Load_1(object sender, EventArgs e)
+        {
+            panel1.BackColor = Color.FromArgb(5, 0, 0, 0);
+            lblUsername.BackColor = Color.FromArgb(0, 0, 0, 0);
+            lblPassword.BackColor = Color.FromArgb(0, 0, 0, 0);
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
         {
 
         }

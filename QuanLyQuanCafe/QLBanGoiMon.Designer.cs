@@ -120,6 +120,7 @@
             this.dgvHoaDon.Size = new System.Drawing.Size(549, 417);
             this.dgvHoaDon.TabIndex = 7;
             this.dgvHoaDon.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHoaDon_CellContentClick);
+            this.dgvHoaDon.Click += new System.EventHandler(this.dgvHoaDon_CellContentClick);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -352,7 +353,7 @@
             this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(20);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(30, 30, 30, 20);
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(391, 462);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(381, 462);
             this.flowLayoutPanel1.TabIndex = 35;
             // 
             // Form1

@@ -8,7 +8,7 @@ namespace QuanLyQuanCafe.Models
     public partial class QuanCafeDB : DbContext
     {
         public QuanCafeDB()
-            : base("name=QuanCafeDB3")
+            : base("name=QuanCafeDB")
         {
         }
 

@@ -1,167 +1,163 @@
-﻿using System;
+﻿using QuanLyQuanCafe.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using QuanLyQuanCafe.Models;
 
 namespace QuanLyQuanCafe
 {
     public partial class Form1 : Form
     {
-        private QuanCafeDB db = new QuanCafeDB();
-        private string maBanHienTai = "";
-        private string maHoaDonHienTai = "";
-        private DateTime gioVao;
+        string connectionString = "Data Source=VIV;Initial Catalog=ProjectQLQuanCafe;Integrated Security=True;";
+        string maBanHienTai = "";
 
         public Form1()
         {
             InitializeComponent();
         }
-        
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            LoadDanhSachMonAn();
+            LoadBanAn();
+        }
+
+        private void LoadDanhSachMonAn()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    SqlDataAdapter da = new SqlDataAdapter("SELECT MaMon, TenMon FROM MenuThucDon", conn);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    if (dt.Rows.Count == 0)
+                    {
+                        MessageBox.Show("Không có dữ liệu món ăn trong MenuThucDon.");
+                        return;
+                    }
+
+                    cboMonAn.DataSource = dt;
+                    cboMonAn.DisplayMember = "TenMon";
+                    cboMonAn.ValueMember = "MaMon";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải món ăn: " + ex.Message);
+            }
+        }
+
+        private void LoadBanAn()
+        {
+            flowLayoutPanel1.Controls.Clear();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("SELECT MaBan, TenBan, TrangThaiB FROM Ban", conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Button btn = new Button();
+                    btn.Width = 100;
+                    btn.Height = 75;
+                    btn.Text = reader["TenBan"].ToString();
+                    btn.Tag = reader["MaBan"].ToString();
+
+                    string trangThai = reader["TrangThaiB"].ToString();
+                    if (trangThai == "Trống")
+                        btn.BackColor = Color.LightGreen;
+                    else if (trangThai == "Đang dùng")
+                        btn.BackColor = Color.Orange;
+                    else
+                        btn.BackColor = Color.LightGray;
+
+                    btn.Click += Btn_Click;
+
+                    flowLayoutPanel1.Controls.Add(btn);
+                }
+            }
+        }
         private void label1_Click(object sender, EventArgs e){}
         private void dgvHoaDon_CellContentClick(object sender, EventArgs e){}
         
         private void txtTongTien_TextChanged(object sender, EventArgs e){}
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            LoadDanhSachBan();
-            LoadMenuMon();
-            KhoiTaoGridView();
-
-            numSoLuong.Minimum = 1;
-            numSoLuong.Maximum = 100;
-        }
-
-        private void LoadDanhSachBan()
-        {
-            flowLayoutPanel1.Controls.Clear();
-            comboChuyenBan.Items.Clear();
-
-            foreach (var ban in db.Bans)
-            {
-                Button btn = new Button();
-                btn.Text = $"Bàn {ban.MaBan}";
-                btn.Width = 80;
-                btn.Height = 50;
-                btn.Tag = ban.MaBan;
-                btn.Margin = new Padding(5);
-                btn.BackColor = (ban.TrangThaiB.Trim() == "Có người") ? Color.Gold : Color.LightGray;
-                btn.Click += Ban_Click;
-
-                flowLayoutPanel1.Controls.Add(btn);
-                comboChuyenBan.Items.Add(ban.MaBan);
-            }
-        }
-
-        private void LoadMenuMon()
-        {
-            cboMonAn.DataSource = db.MenuThucDons.ToList();
-            cboMonAn.DisplayMember = "TenMon";
-            cboMonAn.ValueMember = "MaMon";
-        }
-
-        private void KhoiTaoGridView()
-        {
-            dgvHoaDon.Columns.Clear();
-            dgvHoaDon.Columns.Add("TenMon", "Tên món");
-            dgvHoaDon.Columns.Add("SoLuong", "Số lượng");
-            dgvHoaDon.Columns.Add("DonGia", "Đơn giá");
-            dgvHoaDon.Columns.Add("ThanhTien", "Thành tiền");
-        }
-
-        private void Ban_Click(object sender, EventArgs e)
+        private void Btn_Click(object sender, EventArgs e)
         {
             Button btn = sender as Button;
             maBanHienTai = btn.Tag.ToString();
-            gioVao = DateTime.Now;
-
-            // Kiểm tra nếu bàn chưa có hóa đơn, tạo mới
-            var hoaDon = db.HoaDons.FirstOrDefault(h => h.MaBan == maBanHienTai && h.TrangThaiHD == "Chưa thanh toán");
-            if (hoaDon == null)
-            {
-                maHoaDonHienTai = "HD" + DateTime.Now.Ticks.ToString();
-                hoaDon = new QuanLyQuanCafe.Models.HoaDon
-                {
-                    MaHD = maHoaDonHienTai,
-                    MaBan = maBanHienTai,
-                    MaNV = "NV001",
-                    NgayLap = DateTime.Today,
-                    GioVaoHD = gioVao,
-                    GioRaHD = gioVao,
-                    TongTien = 0,
-                    TrangThaiHD = "Chưa thanh toán",
-                    GhiChuHD = ""
-                };
-
-                db.HoaDons.Add(hoaDon);
-
-                // Cập nhật trạng thái bàn
-                var ban = db.Bans.FirstOrDefault(b => b.MaBan == maBanHienTai);
-                if (ban != null) ban.TrangThaiB = "Có người";
-                db.SaveChanges();
-            }
-            else
-            {
-                maHoaDonHienTai = hoaDon.MaHD;
-            }
-
-            dgvHoaDon.Rows.Clear();
-            LoadChiTietHoaDon();
+            LoadHoaDonTheoBan(maBanHienTai);
         }
-
-        private void LoadChiTietHoaDon()
+        private void LoadHoaDonTheoBan(string maBan)
         {
-            var chiTiets = db.ChiTietHoaDons
-                .Where(c => c.MaHD == maHoaDonHienTai)
-                .ToList();
+            dgvHoaDon.Rows.Clear();
 
-            foreach (var item in chiTiets)
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                var mon = db.MenuThucDons.Find(item.MaMon);
-                dgvHoaDon.Rows.Add(mon.TenMon, item.SoLuong, item.DonGia, item.ThanhTien);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(@"
+                SELECT td.TenMon, ct.SoLuong, ct.DonGia, (ct.SoLuong * ct.DonGia) AS ThanhTien
+                FROM HoaDon hd
+                JOIN ChiTietHoaDon ct ON hd.MaHD = ct.MaHD
+                JOIN MenuThucDon td ON ct.MaMon = td.MaMon
+                WHERE hd.MaBan = @MaBan AND hd.TrangThaiHD = N'Đang xử lý'", conn);
+
+                cmd.Parameters.AddWithValue("@MaBan", maBan);
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    dgvHoaDon.Rows.Add(reader["TenMon"], reader["SoLuong"], reader["DonGia"], reader["ThanhTien"]);
+                }
             }
 
-            CapNhatTongTien();
+            TinhTongTien();
         }
 
         private void btnThemMon_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(maHoaDonHienTai))
+            if (string.IsNullOrEmpty(maBanHienTai))
             {
-                MessageBox.Show("Vui lòng chọn bàn trước.");
+                MessageBox.Show("Vui lòng chọn bàn trước!");
                 return;
             }
 
-            var mon = (MenuThucDon)cboMonAn.SelectedItem;
+            string maMon = cboMonAn.SelectedValue.ToString();
             int soLuong = (int)numSoLuong.Value;
-            decimal thanhTien = mon.DonGia * soLuong;
 
-            // Thêm vào CSDL
-            var ct = db.ChiTietHoaDons.FirstOrDefault(c => c.MaHD == maHoaDonHienTai && c.MaMon == mon.MaMon);
-            if (ct == null)
+            decimal donGia = 0;
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                ct = new ChiTietHoaDon
-                {
-                    MaHD = maHoaDonHienTai,
-                    MaMon = mon.MaMon,
-                    SoLuong = soLuong,
-                    DonGia = mon.DonGia,
-                    ThanhTien = thanhTien
-                };
-                db.ChiTietHoaDons.Add(ct);
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("SELECT DonGia FROM MenuThucDon WHERE MaMon = @MaMon", conn);
+                cmd.Parameters.AddWithValue("@MaMon", maMon);
+                donGia = (decimal)cmd.ExecuteScalar();
+
+                // Tạo hóa đơn nếu chưa có
+                SqlCommand check = new SqlCommand("SELECT COUNT(*) FROM HoaDon WHERE MaBan = @MaBan AND TrangThaiHD = N'Đang xử lý'", conn);
+                check.Parameters.AddWithValue("@MaBan", maBanHienTai);
             }
-            else
+        }
+
+        private void TinhTongTien()
+        {
+            decimal tongTien = 0;
+            foreach (DataGridViewRow row in dgvHoaDon.Rows)
             {
-                ct.SoLuong += soLuong;
-                ct.ThanhTien = ct.SoLuong * ct.DonGia;
+                if (row.Cells[3].Value != null)
+                    tongTien += Convert.ToDecimal(row.Cells[3].Value);
             }
 
-            db.SaveChanges();
-            LoadChiTietHoaDon();
+            decimal giamGia = (decimal)numGiamGia.Value / 100;
+            tongTien = tongTien - (tongTien * giamGia);
+            txtTongTien.Text = tongTien.ToString("N0");
         }
 
         private void CapNhatTongTien()
@@ -184,68 +180,54 @@ namespace QuanLyQuanCafe
 
         private void btnThanhToan_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(maHoaDonHienTai)) return;
+            if (string.IsNullOrEmpty(maBanHienTai))
+            {
+                MessageBox.Show("Chọn bàn trước khi thanh toán.");
+                return;
+            }
 
-            var hoaDon = db.HoaDons.Find(maHoaDonHienTai);
-            if (hoaDon == null) return;
+            decimal tongTien = Convert.ToDecimal(txtTongTien.Text.Replace(",", ""));
 
-            hoaDon.GioRaHD = DateTime.Now;
-            hoaDon.TrangThaiHD = "Đã thanh toán";
-            hoaDon.TongTien = db.ChiTietHoaDons
-            .Where(c => c.MaHD == maHoaDonHienTai)
-            .Sum(c => (decimal?)c.ThanhTien) ?? 0;
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("UPDATE HoaDon SET TongTien = @TongTien, GioRaHD = GETDATE(), TrangThaiHD = N'Đã thanh toán' WHERE MaBan = @MaBan AND TrangThaiHD = N'Đang xử lý'", conn);
+                cmd.Parameters.AddWithValue("@TongTien", tongTien);
+                cmd.Parameters.AddWithValue("@MaBan", maBanHienTai);
+                cmd.ExecuteNonQuery();
+            }
 
-
-            // Bàn trở về trạng thái trống
-            var ban = db.Bans.Find(hoaDon.MaBan);
-            if (ban != null) ban.TrangThaiB = "Trống";
-
-            db.SaveChanges();
             MessageBox.Show("Thanh toán thành công!");
-
+            LoadBanAn();
             dgvHoaDon.Rows.Clear();
-            txtTongTien.Text = "";
-            LoadDanhSachBan();
+            txtTongTien.Text = "0";
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (dgvHoaDon.CurrentRow != null)
-            {
-                string tenMon = dgvHoaDon.CurrentRow.Cells["TenMon"].Value.ToString();
-                var mon = db.MenuThucDons.FirstOrDefault(m => m.TenMon == tenMon);
 
-                var chiTiet = db.ChiTietHoaDons.FirstOrDefault(c => c.MaHD == maHoaDonHienTai && c.MaMon == mon.MaMon);
-                if (chiTiet != null)
-                {
-                    db.ChiTietHoaDons.Remove(chiTiet);
-                    db.SaveChanges();
-                    LoadChiTietHoaDon();
-                }
-            }
         }
 
         private void btnChuyenBan_Click(object sender, EventArgs e)
         {
-            if (comboChuyenBan.SelectedItem == null) return;
-            string banMoi = comboChuyenBan.SelectedItem.ToString();
-
-            var hoaDon = db.HoaDons.FirstOrDefault(h => h.MaHD == maHoaDonHienTai && h.TrangThaiHD == "Chưa thanh toán");
-            if (hoaDon != null)
+            string maBanMoi = comboChuyenBan.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(maBanHienTai) || string.IsNullOrEmpty(maBanMoi))
             {
-                hoaDon.MaBan = banMoi;
-
-                var banCu = db.Bans.Find(maBanHienTai);
-                if (banCu != null) banCu.TrangThaiB = "Trống";
-
-                var banMoiEntity = db.Bans.Find(banMoi);
-                if (banMoiEntity != null) banMoiEntity.TrangThaiB = "Có người";
-
-                db.SaveChanges();
-                LoadDanhSachBan();
-                MessageBox.Show($"Đã chuyển bàn {maBanHienTai} → {banMoi}");
-                maBanHienTai = banMoi;
+                MessageBox.Show("Chọn bàn cần chuyển và bàn đích.");
+                return;
             }
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("UPDATE HoaDon SET MaBan = @BanMoi WHERE MaBan = @BanCu AND TrangThaiHD = N'Đang xử lý'", conn);
+                cmd.Parameters.AddWithValue("@BanCu", maBanHienTai);
+                cmd.Parameters.AddWithValue("@BanMoi", maBanMoi);
+                cmd.ExecuteNonQuery();
+            }
+
+            MessageBox.Show("Chuyển bàn thành công!");
+            LoadBanAn();
         }
     }
 }
